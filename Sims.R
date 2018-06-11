@@ -58,4 +58,8 @@ Example1<-encounter.history(map=map2, Parameters=Marten, showSteps=T, grid_layer
     
     
     
-     # Loop over individuals, build useLayer for each individual, calc n & prob pres for each cell          
+     # Loop over individuals, build useLayer for each individual, calc n & prob pres for each cell  
+     
+     
+     
+             

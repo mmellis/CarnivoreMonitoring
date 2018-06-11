@@ -13,47 +13,47 @@ using namespace Rcpp;
 /////////////////////////////////////////////////////////////////
 //// Calculate distance between two points using latlong coordinates
 /////////////////////////////////////////////////////////////////
-//
-//double rdist_earth(double long1, double lat1, double long2, double lat2)
-//{	
-//	double newdist;
-//	//double PI = 3.141593;  //stored in Rcpp
-//	double R = 6378.388;  //radius of earth in km
-//
-//	double coslat1, sinlat1, coslon1, sinlon1;
-//	double coslat2, sinlat2, coslon2, sinlon2;
-//
-//	coslat1 = cos(lat1*PI/180); //Uses formula from R: rdist.earth()
-//	sinlat1 = sin(lat1*PI/180);
-//	coslon1 = cos(long1*PI/180);
-//	sinlon1 = sin(long1*PI/180);
-//
-//	coslat2 = cos(lat2*PI/180);
-//	sinlat2 = sin(lat2*PI/180);
-//	coslon2 = cos(long2*PI/180);
-//	sinlon2 = sin(long2*PI/180);
-//
-//	newdist = coslat1*coslon1*coslat2*coslon2 + 
-//		coslat1*sinlon1*coslat2*sinlon2 + 
-//		sinlat1*sinlat2;
-//	
-//	if(fabs(newdist)>1)
-//		newdist = newdist/fabs(newdist);
-//	newdist = R * acos(newdist);
-//
-//	return newdist;
-//} 
-//
+
+double rdist_earth(double long1, double lat1, double long2, double lat2)
+{	
+	double newdist;
+	//double PI = 3.141593;  //stored in Rcpp
+	double R = 6378.388;  //radius of earth in km
+
+	double coslat1, sinlat1, coslon1, sinlon1;
+	double coslat2, sinlat2, coslon2, sinlon2;
+
+	coslat1 = cos(lat1*PI/180); //Uses formula from R: rdist.earth()
+	sinlat1 = sin(lat1*PI/180);
+	coslon1 = cos(long1*PI/180);
+	sinlon1 = sin(long1*PI/180);
+
+	coslat2 = cos(lat2*PI/180);
+	sinlat2 = sin(lat2*PI/180);
+	coslon2 = cos(long2*PI/180);
+	sinlon2 = sin(long2*PI/180);
+
+	newdist = coslat1*coslon1*coslat2*coslon2 + 
+		coslat1*sinlon1*coslat2*sinlon2 + 
+		sinlat1*sinlat2;
+	
+	if(fabs(newdist)>1)
+		newdist = newdist/fabs(newdist);
+	newdist = R * acos(newdist);
+
+	return newdist;
+} 
+
 /////////////////////////////////////////////////////////////////
 //// Calculate distance between two points using km
 /////////////////////////////////////////////////////////////////
-//double rdist_km(double x1, double y1, double x2, double y2)
-//{	
-//	double newdist;
-//	newdist = sqrt(pow(x2-x1,2)+pow(y2-y1,2))/1000;
-//	return newdist;
-//} 
-//
+double rdist_km(double x1, double y1, double x2, double y2)
+{	
+	double newdist;
+	newdist = sqrt(pow(x2-x1,2)+pow(y2-y1,2))/1000;
+	return newdist;
+} 
+
 /////////////////////////////////////////////////////////////////
 //// Create a grid for the landscape
 /////////////////////////////////////////////////////////////////
