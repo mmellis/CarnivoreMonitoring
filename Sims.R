@@ -49,15 +49,22 @@ landscape<-raster(ext=extent(c(0, 50, 0, 200)), res=0.1, vals=1)
     )      
     
     # Place individuals...saving locations over 10 years
+WolverineHabitat<-raster('C:/Users/martha.ellis/Documents/GitHub/rSPACE/rSPACE/inst/external/WolvHabitat_Bitterroot.tif')
     ext<-cbind(bbox(WolverineHabitat)[,1], bbox(WolverineHabitat)[,1]+c(50*10^3, 200*10^3))
 map2<-raster(ext=extent(ext), res=100, crs=CRS('+proj=utm +ellps=WGS84 +zone=12 +units=m'), val=1) 
-grd<-makeGrid(map2, 6.25*10^6, type='square')
-  grd<-rasterize(grd, map2, field=1:length(grd))
-  grd<-getValues(grd)
-Example1<-encounter.history(map=map2, Parameters=Marten, showSteps=T, grid_layer=grd, n_cells=1599)
-    
-    
-    
+
+#grd<-makeGrid(map2, 6.25*10^6, type='square')
+#  grd<-rasterize(grd, map2, field=1:length(grd))
+#  grd<-getValues(grd)
+#Example1<-encounter.history(map=map2, Parameters=Marten, showSteps=T, grid_layer=grd, n_cells=1599)
+  
+  system.time({  
+(USE<-new_sample(coordinates(map2), 100, 3.62, rep(0,ncell(map2)), sample(ncell(map2))-1   ))
+   })
+
+sum(USE) 
+dev.new()   
+plot(map2); plot(SpatialPoints(coordinates(map2)[USE==1,]), add=T)
      # Loop over individuals, build useLayer for each individual, calc n & prob pres for each cell  
      
      
