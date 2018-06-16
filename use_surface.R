@@ -1,8 +1,10 @@
 cppFunction(
-'NumericMatrix use_surfaceC(NumericMatrix xy_wolv, NumericMatrix xy, int n_grid, double sd_x, double sd_y, double trunc_cutoff)
+'NumericMatrix use_surfaceC(NumericMatrix xy_wolv, NumericMatrix xy, int n_grid, NumericVector MoveP)
 {	
   int pixels = xy.nrow();
   int N_wolv = xy_wolv.nrow();
+  double sd_x = MoveP[0];
+  double sd_y = MoveP[1];
   
   double * use  = new double[pixels];
   double * gtot = new double[n_grid];
@@ -25,10 +27,12 @@ cppFunction(
 			term3 = log(term2);
 
 			use[px] = exp((term1 + 2 * term3)/(-2));
-			if(trunc_cutoff>0)
+			if(MoveP[3]>0)
 			{
-				if(term1 > pow(trunc_cutoff,2)) //truncates home ranges
-					use[px] = 0;
+				if(term1 > pow(MoveP[2],2)) //truncates home ranges
+					if(term1 < pow(MoveP[2] + MoveP[3],2)){
+           use[px] = (1 - MoveP[4]) / term2;    // 1 /(2pi) = dbinorm(0,0)
+        } else { use[px] = 0; }
 			}
 			use[px] = xy(px,2) * use[px]; // rescale by snow values
 			tot += use[px]; //keep track of total probability over entire surface.

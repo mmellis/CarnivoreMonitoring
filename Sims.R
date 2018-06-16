@@ -153,11 +153,18 @@ MX <-use_surfaceC(coordinates(map2)[USE,],                              #XY coor
 # Loop #########################################################################
 nRuns<-5
 
-xyzg<-as.matrix(read.table('grid.txt',header=T)[,c('x','y','hab','Marten.layer.2')])
+xyzg<-as.matrix(read.table('grid.txt',header=T)[,c('x','y','hab','Marten.layer.1')])
 
 spp<-list('Marten',1) # Fisher or Marten - And the index for individualtype to use
 P<-lapply(get(spp[[1]]), function(x) ifelse(length(x)==1, x[1],x[spp[[2]]]))
- P$N<-P$N*P$MFratio                  
+ P$N<-P$N*P$MFratio  
+ P$MoveP<-local({  
+            sd_xy<-solveSD(P$moveDistQ[1], P$moveDist[1], map2)
+            return(c(sd_xy,                               # sd_x and sd_y
+                     qnorm((1+P$maxDistQ)/2),             # Truncation 1
+                     P$maxD2*1000 / mean(sd_xy),          # Second distance converted to SDs
+                     0.95)                                # Relative prob loss in tail
+                     ) })   
 
 if(spp[[1]] == 'Marten'){
    grd_names<-paste(rep(1:400,each=4), rep(1:4, times=400), 1:1600, sep='.')
@@ -183,13 +190,11 @@ for(yr in 0:P$n_yrs){
      loc<-new_sample(xyzg[,1:2], turn, P$buffer, as.numeric(loc), sample(nrow(xyzg)-1))
      P$Nout[yr+1]<-popN<-sum(loc)
   }
- 
-  sd_xy<-solveSD(P$moveDistQ[1], P$moveDist[1], map2) 
-  
+   
   yr_mx<-use_surfaceC(xyzg[loc,], 
                       xyzg, 
                       n_grid=length(unique(c(xyzg[,4],0))), 
-                      sd_x=sd_xy[1], sd_y=sd_xy[2], qnorm((P$maxDistQ+1)/2))
+                      MoveP=P$MoveP)
     yr_ch<-sapply(yr_mx[,2], function(x) paste0(rbinom(n=5, size=1, prob=x),collapse=''))
   out<-data.frame(yr_mx[,1], yr_mx[,2], yr_ch)
        names(out)<-paste(c('N','enc','ch'),yr,sep='_')
@@ -201,7 +206,7 @@ for(yr in 0:P$n_yrs){
 if( 0 %in% unique(c(xyzg[,4])) )
    OUT<-OUT[-1,]
       
-fname<-paste0('rSPACE_Eff50_', paste0(spp, collapse=''),'_x',rn,'.txt')
+fname<-paste0('rSPACE_Tails_', paste0(spp, collapse=''),'_x',rn,'.txt')
 write.table(data.frame(grd=grd_names,OUT), file=fname, row.names=F)
 cat(gsub('\\.txt|rSPACE_','',fname), P$Nout,'\n', file='rSPACE_Eff50_nTotal.txt', append=T)  
 }
