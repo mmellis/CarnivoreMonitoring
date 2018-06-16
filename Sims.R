@@ -57,14 +57,65 @@ WolverineHabitat<-raster('C:/Users/s91r448/Documents/GitHub/rSPACE/rSPACE/inst/e
 map2<-raster(ext=extent(ext), res=100, crs=CRS('+proj=utm +ellps=WGS84 +zone=12 +units=m'), val=1) 
   rm(ext, WolverineHabitat)                            
 
-# Marten grid
-grd_poly<-makeGrid(map2, 6.25*10^6, type='square')
-  grd<-rasterize(grd_poly, map2, field=1:length(grd_poly))
-  grd<-getValues(grd)
+# Fisher grid ##################################################################
+gF<-makeGrid(map2, 25*10^6, type='square')  #Fisher
+  names(gF)<-paste0('V',1:length(gF))
 
-  plot(map2); plot(grd_poly, add=T)
-# Add Fisher grid labels
-  #To do -----------------------------------------------------------------------
+# Marten grid ################################################################## 
+gM<-local({  
+     ptsF<-lapply(1:length(gF), function(x){
+            rbind(gF[x]@polygons[[1]]@Polygons[[1]]@coords[1:4,],
+                   gF[x]@polygons[[1]]@Polygons[[1]]@labpt)}) 
+      
+      ptsM<-lapply(1:length(ptsF), function(x){
+        ord<-c(1,2,5,4,1)
+        pts<-ptsF[[x]]
+        pts<-expand.grid(x=sort(unique(pts[,1])), y=rev(sort(unique(pts[,2]))))
+        newpts<-list(pts[ord,], pts[ord+1,], pts[ord+3,], pts[ord+4,])
+        names(newpts)<-paste0('V',x,'.',1:4)   
+        return(newpts)})
+      ptsM<-unlist(ptsM, recursive=F,use.names=T)
+      
+     Srl<-lapply(1:length(ptsM), function(x) {
+         Polygons(srl=list(Polygon(coords=ptsM[[x]])), 
+         ID=paste(names(ptsM[x]),x,sep='.'))
+       })
+  
+  return(SpatialPolygons(Srl, proj4string=CRS(proj4string(gF)))) 
+})
+
+# Reduced areas ################################################################
+reduceArea_polygon<-function(gPoly, fc=0.5){
+  editCoords<-lapply(1:length(gPoly), function(x){
+                org=gPoly[x]@polygons[[1]]@Polygons[[1]]@coords
+                 midX<-(max(org[,1])-min(org[,1]))*fc + min(org[,1])
+                 midY<-(max(org[,2])-min(org[,2]))*fc + min(org[,2])
+                org[org==max(org[,1])]<-midX
+                org[org==max(org[,2])]<-midY
+                return(org)  })
+  Srl<-lapply(1:length(editCoords), function(x){
+        Polygons(srl=list(Polygon(coords=unname(editCoords[[x]]))),
+        ID=names(gPoly)[x]) })
+  return(SpatialPolygons(Srl, proj4string=CRS(proj4string(gPoly)))) }
+
+gM_B<-gM  
+gM_C<-reduceArea_polygon(gM,fc=0.5)  
+gM_D<-reduceArea_polygon(gM,fc=0.25)
+
+gF_A<-gF
+gF_B<-reduceArea_polygon(gF,fc=0.5)
+gF_C<-reduceArea_polygon(gF,fc=0.25) 
+  
+  rF<-rasterize(gF, map2, field=1:length(gF), background=0)
+    rF<-addLayer(rF, rasterize(gF_B, map2, field=1:length(gF), background=0),
+                     rasterize(gF_C, map2, field=1:length(gF), background=0))
+  rM<-rasterize(gM, map2, field=1:length(gM), background=0)
+    rM<-addLayer(rM, rasterize(gM_C, map2, field=1:length(gM), background=0),
+                     rasterize(gM_D, map2, field=1:length(gM), background=0))
+  
+write.table(data.frame(coordinates(map2), hab=rep(1, ncells(map2)), 
+   Fisher=getValues(rF), Marten=getValues(rM)), file='grid.txt', row.names=F)
+
 
 # Place individuals ############################################################ 
 #Test
@@ -90,14 +141,10 @@ for(i in 1:nrow(xyw)){
  
 
 # Create encounters ############################################################     
-xyzg<-cbind(coordinates(map2), rep(1,ncell(map2)), grd)
-sd_xy<-solveSD(Marten$moveDistQ[1], Marten$moveDist[1], map2)
-
-
 system.time({     
 MX <-use_surfaceC(coordinates(map2)[USE,],                              #XY coordinates of wolverines
                  xyzg,                                                 #Map matrix with coords, habitat, and grid
-                 n_grid=length(unique(grd))+1,                           #Number of unique levels for grid 
+                 n_grid=length(unique(c(0,grd)))+1,                           #Number of unique levels for grid 
                                                                        #(0 = excluded areas, +1 to count if no excluded areas)
                  sd_x=sd_xy[1], sd_y=sd_xy[2], trunc_cutoff=qnorm(1.7/2))
 })
@@ -105,10 +152,16 @@ MX <-use_surfaceC(coordinates(map2)[USE,],                              #XY coor
 
 # Loop #########################################################################
 nRuns<-5
-system.time({
+
+xyzg<-as.matrix(read.table('grid.txt',header=T)[,c('x','y','hab','Marten.layer.2')])
+
 spp<-list('Marten',1) # Fisher or Marten - And the index for individualtype to use
 P<-lapply(get(spp[[1]]), function(x) ifelse(length(x)==1, x[1],x[spp[[2]]]))
  P$N<-P$N*P$MFratio                  
+
+if(spp[[1]] == 'Marten'){
+   grd_names<-paste(rep(1:400,each=4), rep(1:4, times=400), 1:1600, sep='.')
+} else { grd_names<-1:400 }
 
 for(rn in 1:nRuns){     
 for(yr in 0:P$n_yrs){
@@ -135,7 +188,7 @@ for(yr in 0:P$n_yrs){
   
   yr_mx<-use_surfaceC(xyzg[loc,], 
                       xyzg, 
-                      n_grid=length(unique(c(grd,0))), 
+                      n_grid=length(unique(c(xyzg[,4],0))), 
                       sd_x=sd_xy[1], sd_y=sd_xy[2], qnorm((P$maxDistQ+1)/2))
     yr_ch<-sapply(yr_mx[,2], function(x) paste0(rbinom(n=5, size=1, prob=x),collapse=''))
   out<-data.frame(yr_mx[,1], yr_mx[,2], yr_ch)
@@ -144,11 +197,15 @@ for(yr in 0:P$n_yrs){
      OUT<-data.frame(OUT,out)     
  } else {  OUT<-out }   
 }
-fname<-paste0('rSPACE_', paste0(spp, collapse=''),'_x',rn,'.txt')
-write.table(OUT, file=fname)
-cat(gsub('\\.txt|rSPACE_','',fname), P$Nout,'\n', file='rSPACE_nTotal.txt', append=T)  
+
+if( 0 %in% unique(c(xyzg[,4])) )
+   OUT<-OUT[-1,]
+      
+fname<-paste0('rSPACE_Eff50_', paste0(spp, collapse=''),'_x',rn,'.txt')
+write.table(data.frame(grd=grd_names,OUT), file=fname, row.names=F)
+cat(gsub('\\.txt|rSPACE_','',fname), P$Nout,'\n', file='rSPACE_Eff50_nTotal.txt', append=T)  
 }
-  })
+  
                    
    
      
