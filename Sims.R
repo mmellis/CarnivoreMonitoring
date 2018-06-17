@@ -202,13 +202,10 @@ for(yr in 0:P$n_yrs){
      OUT<-data.frame(OUT,out)     
  } else {  OUT<-out }   
 }
-
-if( 0 %in% unique(c(xyzg[,4])) )
-   OUT<-OUT[-1,]
       
 fname<-paste0('rSPACE_Tails_', paste0(spp, collapse=''),'_x',rn,'.txt')
-write.table(data.frame(grd=grd_names,OUT), file=fname, row.names=F)
-cat(gsub('\\.txt|rSPACE_','',fname), P$Nout,'\n', file='rSPACE_Eff50_nTotal.txt', append=T)  
+write.table(data.frame(grd=grd_names,OUT[-1,]), file=fname, row.names=F)
+cat(gsub('\\.txt|rSPACE_','',fname), P$Nout,'\n', file='rSPACE_Tails_nTotal.txt', append=T)  
 }
   
                    
