@@ -27,8 +27,8 @@ source('./scr/use_surface.R')
     MFratio         = c(0.6, 0.4),        # Ratio of types of individuals
     buffer          = c(3.75, 6.30),      # Distance between individual center locations
     moveDist        = c(2.5, 4.2),        # Movement radius
-    moveDistQ       = c(0.25, 0.25),        # Proportion of time in radius
-    maxDistQ        = c(0.25, 0.25),       # Truncate movements above 1 SD
+    moveDistQ       = c(0.25, 0.25),      # Proportion of time in radius
+    maxDistQ        = c(0.25, 0.25),      # Truncate movements above 1 SD
     habitat.cutoff  = 0.5,                # Minimum habitat value required for individual center locations
     turnover        = 0.35                # Turnover rate 
     )  
@@ -55,7 +55,9 @@ WolverineHabitat<-raster('C:/Users/s91r448/Documents/GitHub/rSPACE/rSPACE/inst/e
   WolverineHabitat<-projectRaster(WolverineHabitat, res=100, crs=CRS('+proj=utm +ellps=WGS84 +zone=12 +units=m'))
   ext<-cbind(bbox(WolverineHabitat)[,1], bbox(WolverineHabitat)[,1]+c(50*10^3, 200*10^3))
 map2<-raster(ext=extent(ext), res=100, crs=CRS('+proj=utm +ellps=WGS84 +zone=12 +units=m'), val=1) 
-  rm(ext, WolverineHabitat)                            
+  rm(ext, WolverineHabitat) 
+  
+  writeRaster(map2,filename='UniformLandscape.tif')                           
 
 # Fisher grid ##################################################################
 gF<-makeGrid(map2, 25*10^6, type='square')  #Fisher
@@ -151,13 +153,14 @@ MX <-use_surfaceC(coordinates(map2)[USE,],                              #XY coor
 
 
 # Loop #########################################################################
-nRuns<-5
+nRuns<-1
 
-xyzg<-as.matrix(read.table('grid.txt',header=T)[,c('x','y','hab','Marten.layer.1')])
+xyzg<-as.matrix(read.table('grid.txt',header=T)[,c('x','y','hab','Marten.layer.2')])
 
 spp<-list('Marten',1) # Fisher or Marten - And the index for individualtype to use
 P<-lapply(get(spp[[1]]), function(x) ifelse(length(x)==1, x[1],x[spp[[2]]]))
  P$N<-P$N*P$MFratio  
+ P$maxD2<-P$moveDist[1] #Proportional = repeat moveDist  #1#km
  P$MoveP<-local({  
             sd_xy<-solveSD(P$moveDistQ[1], P$moveDist[1], map2)
             return(c(sd_xy,                               # sd_x and sd_y
@@ -203,9 +206,9 @@ for(yr in 0:P$n_yrs){
  } else {  OUT<-out }   
 }
       
-fname<-paste0('rSPACE_Tails_', paste0(spp, collapse=''),'_x',rn,'.txt')
+fname<-paste0('rSPACE_Tail50_', paste0(spp, collapse=''),'_x',rn,'.txt')
 write.table(data.frame(grd=grd_names,OUT[-1,]), file=fname, row.names=F)
-cat(gsub('\\.txt|rSPACE_','',fname), P$Nout,'\n', file='rSPACE_Tails_nTotal.txt', append=T)  
+cat(gsub('\\.txt|rSPACE_','',fname), P$Nout,'\n', file='rSPACE_Tail50_nTotal.txt', append=T)  
 }
   
                    
