@@ -134,7 +134,7 @@ for(sp in 1:length(SPP)){   ################################ LOOP OVER SPECIES #
                         xyzg, 
                         n_grid=length(unique(c(xyzg[,4],0))), 
                         MoveP=P$MoveP)
-      yr_ch<-sapply(yr_mx[,2], function(x) paste0(rbinom(n=5, size=1, prob=x),collapse=''))
+      yr_ch<-sapply(yr_mx[,2], function(x) paste0(rbinom(n=P$n_visits, size=1, prob=x),collapse=''))
     out<-data.frame(yr_mx[,1], yr_mx[,2], yr_ch)
          names(out)<-paste(c('N','enc','ch'),yr,sep='_')
     if(yr>0){
