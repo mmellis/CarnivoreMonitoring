@@ -4,23 +4,33 @@
 
 #scatter number of grid cells selected
 
-setwd("C:/Users/s91r448/Documents/WeaselSims/")
+  #setwd("C:/Users/s91r448/Documents/WeaselSims/")
+   setwd("C:/Users/martha.ellis/Documents/WeaselSims")
 
+sc='./Scenario7' 
+sp<-c('Fisher')
+
+   
+for(i in 1:2){   
 source('./ScriptDir/scr/Test_Samples.R')
 source('./ScriptDir/scr/AnalysisFun.R')
 
-sc='./Scenario10'
-sp<-c('Fisher','Marten')[2]
-nRuns=3
+sc=c('./Scenario8', './Scenario9')[i]
+
+for(j in 1:2){
+sp<-c('Fisher','Marten')[j]
+
+nRuns=50 
+iFile<-paste0('rSPACE_sc',sub('^..Scenario','',sc),'_',sp,'_x')
 oFile<-paste0(sp,gsub('\\./','_',sc),'_results.txt')
 
 set.seed(1)
 
 PList<-list(n_yrs=11,
-            n_visits=5,
-            n_visit_test=c(3,5),                    
+            n_visits=10,
+            n_visit_test=c(3,5,10),                    
             detP_test = c(0.7,0.2),                              
-            grid_sample=c(0.05,0.15,0.25,0.35,0.45,0.55,0.75,0.95), 
+            grid_sample=c(0.05,0.2,0.4,0.5,0.75,0.95), 
             alt_model=c(0))                                     
              
              
@@ -39,22 +49,45 @@ for(rn in 1:nRuns){
 }
 
 # 2.) Analyze collated data files
+library(RMark)
 testReplicates(sc, PList, 
-                 base.name='rSPACE_sc10_Marten_x', 
+                 base.name=iFile, 
                  function_name="WeaselFun", jttr=T,
                  results.file=oFile,
-                 skipConfirm=T) 
+                 skipConfirm=T, overwrite=T) 
 
-
+  }}
 # 3.) Check out results
  library(dplyr)
  library(ggplot2)
+
+## Copy from above 
+sc='./Scenario7'
+sp<-c('Fisher','Marten')[1]
+nRuns=50 
+iFile<-paste0('rSPACE_sc',sub('^..Scenario','',sc),'_',sp,'_x')
+oFile<-paste0(sp,gsub('\\./','_',sc),'_results.txt')
+
+
+ Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56,0.39))
+ Sc<-Scenarios[as.numeric(sub('^..Scenario','',sc)),]
  CI = qnorm(0.9)
+
  dta<-read.table(paste0(sc,'/output/',oFile), header=T)
   dta<-dta %>% mutate(ind=as.numeric(-trend > CI*trendSE))
-  ggplot(dta, aes(x=n_grid, y=ind, 
-     colour=factor(n_visits), linetype=factor(detP)))+
-     #stat_smooth(se=F, size=0.5)+
-     stat_smooth(method='glm', method.args=list(family="binomial"), se=F)
+
+dev.new(width=10, height=7)
+ggplot(dta, aes(x=n_grid, y=ind, 
+   colour=factor(n_visits), linetype=factor(detP)))+
+   stat_smooth(se=F, size=0.5)+
+   stat_smooth(method='glm', method.args=list(family="binomial"), se=F)+
+   labs(title=paste(sub('^..','', sc), '-', sp),
+        subtitle=bquote(paste( 'N = ',.(Sc$N),'  ', 
+                               lambda, ' = ', .(Sc$lmda),
+                               '  ESA = ', .(Sc$ESA),
+                               '  Runs = ', .(nRuns) )),
+        colour='n_visits', linetype='detP')+
+   scale_x_continuous(name='Number of grid cells sampled', limits=c(0,ifelse(sp=='Fisher',400,1600)))+
+   scale_y_continuous(name='Power', limits=c(0,1)) 
      
                                                                          

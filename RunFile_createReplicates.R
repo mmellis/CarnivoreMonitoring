@@ -1,6 +1,7 @@
 ### To run: ####################################################################
 ##   1.) Set working directory
- setwd("C:/Users/s91r448/Documents/WeaselSims/")
+ #setwd("C:/Users/s91r448/Documents/WeaselSims/")
+ setwd("C:/Users/martha.ellis/Documents/WeaselSims") 
 ##   2.) Make sure required packages are installed
   pck<-c('rgeos','sp','raster','Rcpp')
   pck<-pck[!(pck %in% installed.packages()[,"Package"])]
@@ -14,15 +15,15 @@
                           './ScriptDir/scr/sample_ind.R',
                           './ScriptDir/scr/use_surface.R')))
 ##   4.) Set scenario number to run
-  sc=10
-  nRuns=3    
+  sc=7
+  nRuns=50    
 ##   5.) Execute entire file to R console  
 ################################################################################
 
 
 #### Scenarios to simulatate for Weasel Team ###################################
 Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56,0.39))
-  output_dir<-paste0('./Scenario',sc)
+  output_dir<-paste0('./Scenario',sc, '_1kTails')
   dir.create(output_dir)
   dir.create(paste(output_dir, 'output', sep='/')) 
 
@@ -99,7 +100,8 @@ for(sp in 1:length(SPP)){   ################################ LOOP OVER SPECIES #
   # Parameters
   P<-lapply(get(spp[[1]]), function(x) ifelse(length(x)==1, x[1],x[spp[[2]]]))
    P$N<-P$N*P$MFratio  
-   P$maxD2<-P$moveDist[1] #Proportional = repeat moveDist  #1#km
+   #P$maxD2<-P$moveDist[1] #Proportional = repeat moveDist  
+   P$maxD2<- 1            #1#km
    P$MoveP<-local({  
               sd_xy<-solveSD(P$moveDistQ[1], P$moveDist[1], MAP)
               return(c(sd_xy,                               # sd_x and sd_y
