@@ -70,7 +70,7 @@ Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56
     n_visits        = 10,                 # Maximum number of visits per year
     grid_size       = 6.25,               # Cell size in grid
     MFratio         = c(0.64, 0.36),      # Ratio of types of individuals
-    buffer          = c(1.62, 1.16),      # Distance between individual center locations
+    buffer          = c(1.16, 1.62),      # Distance between individual center locations
     moveDist        = c(0.58, 0.81),      # Movement radius
     moveDistQ       = c(0.25, 0.25),      # Proportion of time in radius
     maxDistQ        = c(0.25, 0.25),      # Truncate movements above 1 SD
