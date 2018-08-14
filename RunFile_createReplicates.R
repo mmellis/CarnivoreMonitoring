@@ -15,15 +15,35 @@
                           './ScriptDir/scr/sample_ind.R',
                           './ScriptDir/scr/use_surface.R')))
 ##   4.) Set scenario number to run
-  sc=7
+  sc=7 
   nRuns=50    
 ##   5.) Execute entire file to R console  
 ################################################################################
 
+# Libraries ####################################################################
+library(raster)
+library(rgdal)
+library(rgeos)
+library(Rcpp)
 
+source('./ScriptDir/scr/createGrid.R')
+source('./ScriptDir/scr/buildUseLayers.R')
+source('./ScriptDir/scr/sample_ind.R')
+source('./ScriptDir/scr/use_surface.R')
+
+# Landscape ####################################################################
+MAP<-raster('./ScriptDir/UniformLandscape.tif')                                                   
+
+# Grid #########################################################################
+grd<-read.table('./ScriptDir/grid.txt', header=T)
+  names(grd)[3:8]<-c(paste('Fisher', c(25,6.25,1.56), sep='_'),
+                     paste('Marten', c(6.25,1.56, 0.39), sep='_'))                
+
+
+for(sc in c( 4,  5,  6, 10, 11, 12, 16, 17, 18, 22, 23, 24)){
 #### Scenarios to simulatate for Weasel Team ###################################
 Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56,0.39))
-  output_dir<-paste0('./Scenario',sc, '_1kTails')
+  output_dir<-paste0('./Scenario',sc)
   dir.create(output_dir)
   dir.create(paste(output_dir, 'output', sep='/')) 
 
@@ -51,32 +71,13 @@ Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56
     grid_size       = 6.25,               # Cell size in grid
     MFratio         = c(0.64, 0.36),      # Ratio of types of individuals
     buffer          = c(1.62, 1.16),      # Distance between individual center locations
-    moveDist        = c(0.81, 0.58),      # Movement radius
+    moveDist        = c(0.58, 0.81),      # Movement radius
     moveDistQ       = c(0.25, 0.25),      # Proportion of time in radius
     maxDistQ        = c(0.25, 0.25),      # Truncate movements above 1 SD
     habitat.cutoff  = 0.5,                # Minimum habitat value required for individual center locations
     turnover        = 0.25,               # Turnover rate
     sample.cutoff=0 
     )  
-
-# Libraries ####################################################################
-library(raster)
-library(rgdal)
-library(rgeos)
-library(Rcpp)
-
-source('./ScriptDir/scr/createGrid.R')
-source('./ScriptDir/scr/buildUseLayers.R')
-source('./ScriptDir/scr/sample_ind.R')
-source('./ScriptDir/scr/use_surface.R')
-
-# Landscape ####################################################################
-MAP<-raster('./ScriptDir/UniformLandscape.tif')                                                   
-
-# Grid #########################################################################
-grd<-read.table('./ScriptDir/grid.txt', header=T)
-  names(grd)[3:8]<-c(paste('Fisher', c(25,6.25,1.56), sep='_'),
-                     paste('Marten', c(6.25,1.56, 0.39), sep='_'))                
 
 
 # Species setup ################################################################
@@ -86,22 +87,31 @@ SPP<-list(list('Marten',1), list('Marten',2), list('Fisher',1), list('Fisher',2)
   } else if(Scenarios$ESA[sc]==0.39)
    SPP<-SPP[c(1,2)]
    
+#   SPP<-list(list('Fisher',1),list('Fisher',2)) # RevGrid
+   
 ################################################################################
 for(sp in 1:length(SPP)){   ################################ LOOP OVER SPECIES #
   spp<-SPP[[sp]] # Fisher or Marten - index for individualtype to use
 
-  # Grid
+##  Grid
   xyzg<-subset(grd, select=c('x','y','hab',paste(spp[[1]], Scenarios$ESA[sc], sep='_')))
   xyzg<-as.matrix(xyzg)
   if(spp[[1]] == 'Marten'){
      grd_names<-paste(rep(1:400,each=4), rep(1:4, times=400), 1:1600, sep='.')
   } else  grd_names = 1:400 
+  
+#  # RevGrid
+# stopifnot(SPP[[1]] == 'Fisher')
+#  xyzg<-subset(grd, select=c('x','y','hab',paste('Marten', Scenarios$ESA[sc], sep='_')))
+#  xyzg<-as.matrix(xyzg)
+#   grd_names<-paste(rep(1:400,each=4), rep(1:4, times=400), 1:1600, sep='.')
+#
 
   # Parameters
   P<-lapply(get(spp[[1]]), function(x) ifelse(length(x)==1, x[1],x[spp[[2]]]))
    P$N<-P$N*P$MFratio  
-   #P$maxD2<-P$moveDist[1] #Proportional = repeat moveDist  
-   P$maxD2<- 1            #1#km
+   P$maxD2<-P$moveDist[1] #Proportional = repeat moveDist  
+   #P$maxD2<- 1            #1#km
    P$MoveP<-local({  
               sd_xy<-solveSD(P$moveDistQ[1], P$moveDist[1], MAP)
               return(c(sd_xy,                               # sd_x and sd_y
@@ -120,7 +130,7 @@ for(sp in 1:length(SPP)){   ################################ LOOP OVER SPECIES #
        message(sum(loc), ' fit at start')
     } else { 
        wch<-which(loc)                     #Mortality
-       wch<-sample(wch, round((1-0.933)*popN))
+       wch<-sample(wch, round((1-P$lmda)*popN))
        loc[wch]<-F
        
        turn<-round(P$turnover*length(wch))
@@ -148,4 +158,4 @@ for(sp in 1:length(SPP)){   ################################ LOOP OVER SPECIES #
   write.table(data.frame(grd=grd_names,OUT[-1,]), file=paste0(output_dir,'/',fname), row.names=F)
   cat(gsub('\\.txt|rSPACE_','',fname), P$Nout,'\n', file=paste0(output_dir, '/output/rSPACE_sc', sc, '_nTotal.txt'), append=T)  
 }}                                                   # END REPLICATES, SPECIES #
-
+ } #End loop over scenarios
