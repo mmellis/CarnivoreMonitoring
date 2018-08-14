@@ -55,8 +55,8 @@ Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56
     n_visits        = 10,                 # Maximum number of visits per year
     grid_size       = 25,                 # Cell size in grid
     MFratio         = c(0.6, 0.4),        # Ratio of types of individuals
-    buffer          = c(3.75, 6.30),      # Distance between individual center locations
-    moveDist        = c(2.5, 4.2),        # Movement radius
+    buffer          = c(2.7, 4.8),        # Distance between individual center locations
+    moveDist        = c(1.8, 3.2),        # Movement radius
     moveDistQ       = c(0.25, 0.25),      # Proportion of time in radius
     maxDistQ        = c(0.25, 0.25),      # Truncate movements above 1 SD
     habitat.cutoff  = 0.5,                # Minimum habitat value required for individual center locations
