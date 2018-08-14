@@ -11,13 +11,13 @@ sc='./Scenario7'
 sp<-c('Fisher')
 
    
-for(i in 1:2){   
+for(i in 1:3){   
 source('./ScriptDir/scr/Test_Samples.R')
 source('./ScriptDir/scr/AnalysisFun.R')
 
-sc=c('./Scenario8', './Scenario9')[i]
+sc=paste0('./Scenario', c(8,14,20))[i]
 
-for(j in 1:2){
+for(j in 2:2){
 sp<-c('Fisher','Marten')[j]
 
 nRuns=50 
