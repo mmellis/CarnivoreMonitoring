@@ -1,5 +1,5 @@
 ### Exploring movement parameters ##############################################
-plotMovement<-function(moveDist, moveDistQ, maxDistQ,dist2, relP, name=NULL){
+plotMovement<-function(moveDist, moveDistQ, maxDistQ,dist2, relP, name=NULL, plot=T){
   z<-seq(-4,4,by=0.01)
   dz<-dnorm(z)
 
@@ -13,8 +13,10 @@ plotMovement<-function(moveDist, moveDistQ, maxDistQ,dist2, relP, name=NULL){
   distance<-z[dy>0]*scl
   distance<-c(rep(distance[1]-dist2,2), distance[1], distance, rev(distance)[1],rep(rev(distance)[1]+dist2,2))
   prob<-c(0,lw,lw,dy[dy>0],lw,lw,0)
+  if(plot==T){
   plot(distance, prob, type='l',xlab='Distance (km)', 
-   main=paste0(name, ':   moveDist = ', moveDist, ',  moveQ = ', moveDistQ,',  maxQ = ', maxDistQ))                                 
+   main=paste0(name, ':   moveDist = ', moveDist, ',  moveQ = ', moveDistQ,',  maxQ = ', maxDistQ))                  }
+  return(data.frame(distance, prob))               
 }
 
 pdf('FisherMarten_1kmTails.pdf')
