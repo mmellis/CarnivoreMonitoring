@@ -55,10 +55,11 @@ Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56
     n_visits        = 10,                 # Maximum number of visits per year
     grid_size       = 25,                 # Cell size in grid
     MFratio         = c(0.6, 0.4),        # Ratio of types of individuals
-    buffer          = c(2.7, 4.8),        # Distance between individual center locations
-    moveDist        = c(1.8, 3.2),        # Movement radius
+    buffer          = c(2.7, 5.55),       # Distance between individual center locations
+    moveDist        = c(1.8, 3.7),        # Movement radius
     moveDistQ       = c(0.25, 0.25),      # Proportion of time in radius
     maxDistQ        = c(0.25, 0.25),      # Truncate movements above 1 SD
+    maxD2           = c(1.0,2.0),
     habitat.cutoff  = 0.5,                # Minimum habitat value required for individual center locations
     turnover        = 0.35                # Turnover rate 
     )  
@@ -70,10 +71,11 @@ Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56
     n_visits        = 10,                 # Maximum number of visits per year
     grid_size       = 6.25,               # Cell size in grid
     MFratio         = c(0.64, 0.36),      # Ratio of types of individuals
-    buffer          = c(1.16, 1.62),      # Distance between individual center locations
-    moveDist        = c(0.58, 0.81),      # Movement radius
+    buffer          = c(2.02, 2.72),      # Distance between individual center locations
+    moveDist        = c(1.01, 1.36),      # Movement radius
     moveDistQ       = c(0.25, 0.25),      # Proportion of time in radius
     maxDistQ        = c(0.25, 0.25),      # Truncate movements above 1 SD
+    maxD2           = c(0.5,1.0),    
     habitat.cutoff  = 0.5,                # Minimum habitat value required for individual center locations
     turnover        = 0.25,               # Turnover rate
     sample.cutoff=0 
@@ -110,7 +112,7 @@ for(sp in 1:length(SPP)){   ################################ LOOP OVER SPECIES #
   # Parameters
   P<-lapply(get(spp[[1]]), function(x) ifelse(length(x)==1, x[1],x[spp[[2]]]))
    P$N<-P$N*P$MFratio  
-   P$maxD2<-P$moveDist[1] #Proportional = repeat moveDist  
+   #P$maxD2<-P$moveDist[1] #Proportional = repeat moveDist  
    #P$maxD2<- 1            #1#km
    P$MoveP<-local({  
               sd_xy<-solveSD(P$moveDistQ[1], P$moveDist[1], MAP)
