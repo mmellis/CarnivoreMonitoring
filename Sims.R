@@ -24,10 +24,12 @@ source('./CarnivoreMonitoring/use_surface.R')
     n_yrs           = 10,                 # Maximum number of years in simulation
     n_visits        = 5,                  # Maximum number of visits per year
     grid_size       = 25,                 # Cell size in grid
-    buffer          = c(2.7, 4.8),        # Distance between individual center locations
+    MFratio         = c(0.6, 0.4),        # Ratio of types of individuals
+    buffer          = c(2.7, 4.8),       # Distance between individual center locations
     moveDist        = c(1.8, 3.2),        # Movement radius
     moveDistQ       = c(0.25, 0.25),      # Proportion of time in radius
     maxDistQ        = c(0.25, 0.25),      # Truncate movements above 1 SD
+    maxD2           = c(1.0,2.0),
     habitat.cutoff  = 0.5,                # Minimum habitat value required for individual center locations
     turnover        = 0.35                # Turnover rate 
     )  
@@ -40,10 +42,11 @@ source('./CarnivoreMonitoring/use_surface.R')
     n_visits        = 5,                  # Maximum number of visits per year
     grid_size       = 6.25,               # Cell size in grid
     MFratio         = c(0.64, 0.36),      # Ratio of types of individuals
-    buffer          = c(1.16, 1.62),      # Distance between individual center locations
-    moveDist        = c(0.58, 0.81),      # Movement radius
+    buffer          = c(2.02, 2.72),      # Distance between individual center locations
+    moveDist        = c(1.01, 1.36),      # Movement radius
     moveDistQ       = c(0.25, 0.25),      # Proportion of time in radius
     maxDistQ        = c(0.25, 0.25),      # Truncate movements above 1 SD
+    maxD2           = c(0.5,1.0),    
     habitat.cutoff  = 0.5,                # Minimum habitat value required for individual center locations
     turnover        = 0.25,               # Turnover rate
     sample.cutoff=0 
