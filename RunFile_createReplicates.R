@@ -15,7 +15,7 @@
                           './ScriptDir/scr/sample_ind.R',
                           './ScriptDir/scr/use_surface.R')))
 ##   4.) Set scenario number to run
-  sc=7 
+  scenarios_to_test=7 
   nRuns=50    
 ##   5.) Execute entire file to R console  
 ################################################################################
@@ -40,7 +40,7 @@ grd<-read.table('./ScriptDir/grid.txt', header=T)
                      paste('Marten', c(6.25,1.56, 0.39), sep='_'))                
 
 
-for(sc in c( 4,  5,  6, 10, 11, 12, 16, 17, 18, 22, 23, 24)){
+for(sc in scenarios_to_test){
 #### Scenarios to simulatate for Weasel Team ###################################
 Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56,0.39))
   output_dir<-paste0('./Scenario',sc)
