@@ -15,7 +15,7 @@
                           './ScriptDir/scr/sample_ind.R',
                           './ScriptDir/scr/use_surface.R')))
 ##   4.) Set scenario number to run
-  scenarios_to_test=7 
+  scenarios_to_test=c(8,14,20)   ## RevGrid c(8,14,20)
   nRuns=50    
 ##   5.) Execute entire file to R console  
 ################################################################################
@@ -43,7 +43,8 @@ grd<-read.table('./ScriptDir/grid.txt', header=T)
 for(sc in scenarios_to_test){
 #### Scenarios to simulatate for Weasel Team ###################################
 Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56,0.39))
-  output_dir<-paste0('./Scenario',sc)
+    output_dir<-paste0('./Scenario',sc) 
+#  output_dir <-paste0('./Scenario',sc, '_RevGrid')   # RevGrid
   dir.create(output_dir)
   dir.create(paste(output_dir, 'output', sep='/')) 
 
@@ -88,8 +89,10 @@ SPP<-list(list('Marten',1), list('Marten',2), list('Fisher',1), list('Fisher',2)
    SPP<-SPP[c(3,4)]
   } else if(Scenarios$ESA[sc]==0.39)
    SPP<-SPP[c(1,2)]
-   
+
+####  # RevGrid   
 #   SPP<-list(list('Fisher',1),list('Fisher',2)) # RevGrid
+####
    
 ################################################################################
 for(sp in 1:length(SPP)){   ################################ LOOP OVER SPECIES #
@@ -102,12 +105,12 @@ for(sp in 1:length(SPP)){   ################################ LOOP OVER SPECIES #
      grd_names<-paste(rep(1:400,each=4), rep(1:4, times=400), 1:1600, sep='.')
   } else  grd_names = 1:400 
   
-#  # RevGrid
-# stopifnot(SPP[[1]] == 'Fisher')
+####  # RevGrid
+# stopifnot(spp[[1]] == 'Fisher')
 #  xyzg<-subset(grd, select=c('x','y','hab',paste('Marten', Scenarios$ESA[sc], sep='_')))
 #  xyzg<-as.matrix(xyzg)
 #   grd_names<-paste(rep(1:400,each=4), rep(1:4, times=400), 1:1600, sep='.')
-#
+####
 
   # Parameters
   P<-lapply(get(spp[[1]]), function(x) ifelse(length(x)==1, x[1],x[spp[[2]]]))
