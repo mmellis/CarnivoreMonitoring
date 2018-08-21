@@ -13,11 +13,61 @@
 
 ##   3.) Make sure R scripts are in working directory
   stopifnot(file.exists(c('./ScriptDir/scr/Test_Samples.R', 
-                          './ScriptDir/scr/AnalysisFun.R')))
+                          './ScriptDir/scr/AnalysisFun.R',
+                          './ScriptDir/scr/WeaselFun.R',
+                          './ScriptDir/scr/WeaselerFun.R')))
 
 ##   4.) Set scenario number to run
+   #(a) Normal runs
+  nRuns=50 
   scenarios_to_test=paste0('./Scenario', 1:6) 
-  nRuns=50    
+  species_to_test = lapply(1:length(scenarios_to_test), function(x) c('Fisher','Marten')) 
+      PList<-list(n_yrs=11,
+                n_visits=10,
+                n_visit_test=c(3,5,10),                    
+                detP_test = c(0.2, 0.7),                              
+                grid_sample=c(0.05,0.25,0.5,0.75,0.95), 
+                alt_model=c(0))
+  FUN<-list("WeaselFun", T)
+  addtext='' 
+ 
+   #(b) RevGrid
+  nRuns=50 
+  scenarios_to_test=paste0('./Scenario', c(2,8,14,20), '_RevGrid') 
+  species_to_test = lapply(1:length(scenarios_to_test), function(x) c('Fisher','Marten')) 
+      PList<-list(n_yrs=11,
+                n_visits=10,
+                n_visit_test=c(3,5,10),                    
+                detP_test = c(0.2, 0.7),                              
+                grid_sample=c(0.05,0.25,0.5,0.75,0.95), 
+                alt_model=c(0))
+  FUN<-list("WeaselFun", T)
+  addtext=''    
+   #(c) AltM runs
+  nRuns=50 
+  scenarios_to_test=paste0('./Scenario', c(8,11,14,17)) 
+  species_to_test = list('Fisher','Fisher','Marten','Marten')
+     PList<-list(n_yrs=11,
+                n_visits=10,
+                n_visit_test=c(5),                    
+                detP_test = c(0.2, 0.7),                              
+                grid_sample=c(0.05,0.25,0.5,0.75,0.95), 
+                alt_model=c(0:3))
+  FUN<-list("WeaselFun2", T)
+  addtext='_altM' 
+  
+   #(d) AltM=5 runs
+  nRuns=50 
+  scenarios_to_test=paste0('./Scenario', c(8,14)) 
+  species_to_test = list('Fisher','Marten')
+     PList<-list(n_yrs=11,
+                n_visits=10,
+                n_visit_test=c(5),                    
+                detP_test = c(0.7),                              
+                grid_sample=c(1.0), 
+                alt_model=c(5)) 
+  FUN<-list("WeaselFun3", F) 
+  addtext='_altM5'   
 ##   5.) Execute entire file to R console  
 
 ################################################################################
@@ -27,29 +77,26 @@ library(RMark)
 
 source('./ScriptDir/scr/Test_Samples.R')
 source('./ScriptDir/scr/AnalysisFun.R')
+source('./ScriptDir/scr/WeaselFun.R')
+source('./ScriptDir/scr/WeaselerFun.R')
 
+MX<-matrix(rbinom(p=0.2, n=1600*11, size=1),1600,11)
 ################################################################################ 
 for(i in 1:length(scenarios_to_test)){   
   sc=scenarios_to_test[i]
-  SPP<-c('Fisher','Marten')
+   scN<-gsub('^.*Scenario|_.*$','', sc)
+  SPP<-species_to_test[[i]]
   SPP<-SPP[sapply(SPP, function(x) any(grepl(x, dir(path=sc))))]
+  stopifnot(length(SPP)>0)
 
       
   for(j in 1:length(SPP)){
     sp<-SPP[j]
     
-    iFile<-paste0('rSPACE_sc',sub('^..Scenario','',sc),'_',sp,'_x')
-    oFile<-paste0(sp,gsub('\\./','_',sc),'_results.txt')
+    iFile<-paste0('rSPACE_sc',scN,'_',sp,'_x')
+    oFile<-paste0(sp,'Scenario', scN,'_results', addtext, '.txt')
     
-    set.seed(1)
-    
-    PList<-list(n_yrs=11,
-                n_visits=10,
-                n_visit_test=c(3,5,10),                    
-                detP_test = c(0.7,0.2),                              
-                grid_sample=c(0.05,0.2,0.4,0.5,0.75,0.95), 
-                alt_model=c(0))                                     
-                 
+    set.seed(1)                                                     
                  
     # 1.) Collate encounter histories across individual types
     for(rn in 1:nRuns){
@@ -68,9 +115,10 @@ for(i in 1:length(scenarios_to_test)){
     # 2.) Analyze collated data files
     testReplicates(sc, PList, 
                      base.name=iFile, 
-                     function_name="WeaselFun", jttr=T,
+                     function_name=FUN[[1]], jttr=FUN[[2]],
                      results.file=oFile,
-                     skipConfirm=T, overwrite=T) 
+                     skipConfirm=T, overwrite=T, 
+                     sample_matrix=MX, n_runs=nRuns) 
 
   }}
   
