@@ -89,12 +89,12 @@ for(i in 1:length(scenarios_to_test)){
   SPP<-SPP[sapply(SPP, function(x) any(grepl(x, dir(path=sc))))]
   stopifnot(length(SPP)>0)
 
-      
+            
   for(j in 1:length(SPP)){
     sp<-SPP[j]
     
     iFile<-paste0('rSPACE_sc',scN,'_',sp,'_x')
-    oFile<-paste0(sp,'Scenario', scN,'_results', addtext, '.txt')
+    oFile<-paste0(sp,'_Scenario', scN,'_results', addtext, '.txt')
     
     set.seed(1)                                                     
                  
