@@ -9,6 +9,7 @@ WeaselFun2<-function(n_yrs, ch=NULL, n_visit=NULL, sample_yr=0, FPC=1, grdID=NUL
 
 ## Subfunctions ################################################################
   tryN<-function(expr) tryCatch(expr, error=function(e) return(NULL))          #
+  tryNA<-function(expr) tryCatch(expr, error=function(e) return(NA))
   tryW<-function(expr) suppressWarnings(tryN(expr))                            #
   tryM<-function(expr) suppressMessages(tryCatch(expr,                         #
           error=function(e){                                                   #
@@ -133,6 +134,54 @@ drop_years <- function(ch, n_visits, dropvec=rep(c(F,T),                       #
           new_derived_psi <- matrix(NA, nrow=1, ncol=n_yrs)
           new_derived_psi[,seq(1,n_yrs, by=gapL)]<-derived_psi 
           derived_psi<-new_derived_psi
+   }  else if(sample_yr ==4 ) {    #random sample
+
+    ConvertToMatrix<-function(ch){
+      ch<-strsplit(ch, split='')
+      ch<-lapply(ch, function(x) as.numeric(x))
+      ch<-do.call(rbind, ch)
+    return(ch)}
+         
+    loglik <- function(param, h)
+      {
+        s   <- dim(h)[1] # nr sites
+        k   <- dim(h)[2] # nr sampling occasions
+        psi <- 1/(1+exp(-param[1]))  # to probabilities
+        p   <- 1/(1+exp(-param[2]))
+        d  	<- sum(sum(h)) # summary statistics
+        Sd  <- sum(rowSums(h)>0)
+        loglik <- -(Sd*log(psi)+d*log(p)+(k*Sd-d)*log(1-p)+(s-Sd)*log((1-psi)+psi*(1-p)^k))
+        return(loglik)
+      }
+   
+   fit<-function(h1){ 
+    fm<-optim(par=runif(2), fn=loglik, h=h1, hessian=T)
+      pars <- 1/(1+exp(-fm$par))    # to probabilities
+      VC<-tryN(solve(fm$hessian, silent=T))
+    if (is.null(VC))
+      {
+        SEs <- rep(NA,2)
+      }else{
+        SEs <- c(sqrt(diag(VC))*pars*(1-pars))
+      }
+    return(list(psi1=list(est=pars[1], se=SEs[1]), p1=pars[2])) }
+            
+
+   st<-seq(1,nchar(ch[1]), by=n_visit)
+   en<-seq(n_visit, nchar(ch[1]), by=n_visit)
+  h<-lapply(1:length(st), function(x) substr(ch, st[x], en[x]) ) 
+   
+   
+   fits<-lapply(h, function(x) tryN(fit(ConvertToMatrix(x))))
+   
+   derived_psi<-sapply(1:n_yrs, function(x) fits[[x]]$psi1$est)
+   derived_psi_vcv<-sapply(1:n_yrs, function(x) fits[[x]]$psi1$se)
+    derived_psi_vcv<-diag(derived_psi_vcv, nrow=n_yrs)
+   P_est<-fits[[1]]$p1
+   
+   Trend_DM = cbind(1,1:n_yrs)
+   Random.effects.model<-tryW(var.components.reml(theta=derived_psi,design=Trend_DM,vcv=derived_psi_vcv))
+ 
    } 
    
    if(!is.null(Random.effects.model)){
@@ -142,8 +191,8 @@ drop_years <- function(ch, n_visits, dropvec=rep(c(F,T),                       #
    if(!is.null(derived_psi)){
      sim_results[1,grep('X',names(sim_results))] <- matrix(derived_psi,nrow=1)
      sim_results$p_est          <- P_est
-     sim_results$singular       <- tryN(length(RDoccupancy$results$singular))
-   }
+     sim_results$singular       <- tryNA(length(RDoccupancy$results$singular))
+     }
    
    return(sim_results)
 }
