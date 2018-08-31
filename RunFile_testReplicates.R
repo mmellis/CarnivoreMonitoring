@@ -33,8 +33,8 @@
  
    #(b) RevGrid
   nRuns=50 
-  scenarios_to_test=paste0('./Scenario', c(2,8,14,20), '_RevGrid') 
-  species_to_test = lapply(1:length(scenarios_to_test), function(x) c('Fisher','Marten')) 
+  scenarios_to_test = paste0('./Scenario', c(2,8,14,20), '_RevGrid')
+  species_to_test = lapply(1:length(scenarios_to_test), function(x) c('Fisher','Marten'))
       PList<-list(n_yrs=11,
                 n_visits=10,
                 n_visit_test=c(3,5,10),                    
@@ -42,10 +42,12 @@
                 grid_sample=c(0.05,0.25,0.5,0.75,0.95), 
                 alt_model=c(0))
   FUN<-list("WeaselFun", T)
-  addtext=''    
+  addtext=''  
+    
    #(c) AltM runs
   nRuns=50 
-  scenarios_to_test=paste0('./Scenario', c(8,11,14,17)) 
+  scenarios_to_test=c(paste0('./Scenario', c(8,11)),
+                      paste0('./Scenario', c(8,11), '_RevGrid')) 
   species_to_test = list('Fisher','Fisher','Marten','Marten')
      PList<-list(n_yrs=11,
                 n_visits=10,
