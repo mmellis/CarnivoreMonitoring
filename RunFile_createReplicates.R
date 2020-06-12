@@ -15,7 +15,8 @@
                           './ScriptDir/scr/sample_ind.R',
                           './ScriptDir/scr/use_surface.R')))
 ##   4.) Set scenario number to run
-  scenarios_to_test=c(8,14,20)   ## RevGrid c(2,8,14,20)
+  scenarios_to_test=21:24   ## RevGrid c(2,8,14,20) 
+  RevGrid=F
   nRuns=50    
 ##   5.) Execute entire file to R console  
 ################################################################################
@@ -84,37 +85,40 @@ Scenarios<-expand.grid(N=c(150,250,400), lmda=c(0.933,0.978), ESA=c(25,6.25,1.56
 
 
 # Species setup ################################################################
+if(!RevGrid){
 SPP<-list(list('Marten',1), list('Marten',2), list('Fisher',1), list('Fisher',2))
   if(Scenarios$ESA[sc]==25){
    SPP<-SPP[c(3,4)]
   } else if(Scenarios$ESA[sc]==0.39)
    SPP<-SPP[c(1,2)]
-
-####  # RevGrid   
-#   SPP<-list(list('Fisher',1),list('Fisher',2)) # RevGrid
-#    if(sc==2)
-#      SPP<-list(list('Marten',1),list('Marten',2))
-####
+} else {
+  # RevGrid   
+   SPP<-list(list('Fisher',1),list('Fisher',2)) 
+    if(sc==2)
+      SPP<-list(list('Marten',1),list('Marten',2))
+  #
+}
    
 ################################################################################
 for(sp in 1:length(SPP)){   ################################ LOOP OVER SPECIES #
   spp<-SPP[[sp]] # Fisher or Marten - index for individualtype to use
 
-####  Grid
-#  xyzg<-subset(grd, select=c('x','y','hab',paste(spp[[1]], Scenarios$ESA[sc], sep='_')))
-#  xyzg<-as.matrix(xyzg)
-#  if(spp[[1]] == 'Marten'){
-#     grd_names<-paste(rep(1:400,each=4), rep(1:4, times=400), 1:1600, sep='.')
-#  } else  grd_names = 1:400 
-  
-###  # RevGrid
+if(!RevGrid){
+  xyzg<-subset(grd, select=c('x','y','hab',paste(spp[[1]], Scenarios$ESA[sc], sep='_')))
+  xyzg<-as.matrix(xyzg)
+  if(spp[[1]] == 'Marten'){
+     grd_names<-paste(rep(1:400,each=4), rep(1:4, times=400), 1:1600, sep='.')
+  } else  grd_names = 1:400 
+} else {  
+# RevGrid
  GRIDNAME<-ifelse(spp[[1]] == 'Fisher', 'Marten', 'Fisher')
   xyzg<-subset(grd, select=c('x','y','hab',paste(GRIDNAME, Scenarios$ESA[sc], sep='_')))
   xyzg<-as.matrix(xyzg)
   if(GRIDNAME == 'Marten'){
      grd_names<-paste(rep(1:400,each=4), rep(1:4, times=400), 1:1600, sep='.')
   } else  grd_names = 1:400
-###
+#
+}
 
   # Parameters
   P<-lapply(get(spp[[1]]), function(x) ifelse(length(x)==1, x[1],x[spp[[2]]]))
